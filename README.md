@@ -10,4 +10,4 @@ this is amazing
 
 it lets u copy individual fiels and all fliesssses
 
-i made the exe file using this command: pyinstaller --onefile file_structure.py
+i made the exe file using this command: `pyinstaller --onefile file_structure.py`
