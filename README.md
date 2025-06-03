@@ -20,7 +20,8 @@ A modern Python GUI application that helps developers easily copy entire codebas
 
 ### Current Version (v3) - Modern UI
 
-_[Add your new screenshot here showing the modern dark theme interface with the improved layout]_
+![image](https://github.com/user-attachments/assets/5c03a376-ddf9-40b4-89e3-04070fe858d4)
+
 
 ## 🚀 Quick Start
 
