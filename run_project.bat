@@ -56,15 +56,28 @@ goto menu
 :build
 echo Building EXE (GUI only, no console window)...
 echo Cleaning previous builds...
-if exist "build" rmdir /s /q "build"
-if exist "dist" rmdir /s /q "dist"
-if exist "*.spec" del "*.spec"
+if exist "build" rmdir /s /q "build" 2>nul
+if exist "dist" rmdir /s /q "dist" 2>nul
+if exist "*.spec" del "*.spec" 2>nul
+
 echo Building executable...
+echo Command: pyinstaller --onefile --windowed --name "FileStructureViewer_v3" --version-file=version_info.txt main.py
 pyinstaller --onefile --windowed --name "FileStructureViewer_v3" --version-file=version_info.txt main.py
+
+if %errorlevel% neq 0 (
+    echo ❌ PyInstaller failed with error code: %errorlevel%
+    echo Check the output above for details.
+    pause
+    goto menu
+)
+
 if exist "dist\FileStructureViewer_v3.exe" (
-    echo ✅ Build successful! EXE created at: dist\FileStructureViewer_v3.exe
+    echo ✅ Build successful! EXE created at: "%cd%\dist\FileStructureViewer_v3.exe"
+    echo File size: 
+    for %%A in ("dist\FileStructureViewer_v3.exe") do echo %%~zA bytes
 ) else (
-    echo ❌ Build failed! Check for errors above.
+    echo ❌ Build completed but EXE file not found!
+    echo This might indicate a build failure.
 )
 pause
 goto menu
@@ -72,30 +85,83 @@ goto menu
 :build_safe
 echo Building with safer options...
 echo Step 1: Clean previous builds
-if exist "build" rmdir /s /q "build"
-if exist "dist" rmdir /s /q "dist"
-if exist "*.spec" del "*.spec"
+if exist "build" rmdir /s /q "build" 2>nul
+if exist "dist" rmdir /s /q "dist" 2>nul
+if exist "*.spec" del "*.spec" 2>nul
+
 echo Step 2: Create spec file
+echo Command: pyi-makespec --onefile --windowed --name "FileStructureViewer_v3" main.py
 pyi-makespec --onefile --windowed --name "FileStructureViewer_v3" main.py
+
+if %errorlevel% neq 0 (
+    echo ❌ Spec file creation failed with error code: %errorlevel%
+    pause
+    goto menu
+)
+
 echo Step 3: Build with spec
+echo Command: pyinstaller FileStructureViewer_v3.spec
 pyinstaller FileStructureViewer_v3.spec
+
+if %errorlevel% neq 0 (
+    echo ❌ PyInstaller failed with error code: %errorlevel%
+    echo Check the output above for details.
+    pause
+    goto menu
+)
+
 if exist "dist\FileStructureViewer_v3.exe" (
-    echo ✅ Build successful! EXE created at: dist\FileStructureViewer_v3.exe
+    echo ✅ Build successful! EXE created at: "%cd%\dist\FileStructureViewer_v3.exe"
+    echo File size: 
+    for %%A in ("dist\FileStructureViewer_v3.exe") do echo %%~zA bytes
 ) else (
-    echo ❌ Build failed! Check for errors above.
+    echo ❌ Build completed but EXE file not found!
+    echo This might indicate a build failure.
 )
 pause
 goto menu
 
 :run_exe
 echo Running built EXE...
-if exist "dist\FileStructureViewer_v3.exe" (
-    echo Starting FileStructureViewer_v3.exe...
-    start "" "dist\FileStructureViewer_v3.exe"
-    echo Application started!
+echo Checking for executable...
+echo Current directory: %cd%
+echo Looking for: "%cd%\dist\FileStructureViewer_v3.exe"
+
+if not exist "dist" (
+    echo ❌ Error: 'dist' folder does not exist!
+    echo Please build the project first using option 3 or 4.
+    pause
+    goto menu
+)
+
+if not exist "dist\FileStructureViewer_v3.exe" (
+    echo ❌ Error: EXE file not found!
+    echo Expected location: "%cd%\dist\FileStructureViewer_v3.exe"
+    echo.
+    echo Available files in dist folder:
+    if exist "dist" (
+        dir "dist" /b
+    ) else (
+        echo No dist folder found.
+    )
+    echo.
+    echo Please build the project first using:
+    echo   Option 3: Build EXE (GUI only, no console)
+    echo   Option 4: Build EXE (safer method)
+    pause
+    goto menu
+)
+
+echo ✅ EXE file found!
+echo Starting FileStructureViewer_v3.exe...
+echo.
+pushd "%cd%\dist"
+start "" "FileStructureViewer_v3.exe"
+popd
+if %errorlevel% equ 0 (
+    echo ✅ Application started successfully!
 ) else (
-    echo EXE not found! Please build first (option 3 or 4).
-    echo Looking for: %cd%\dist\FileStructureViewer_v3.exe
+    echo ❌ Error starting application. Error code: %errorlevel%
 )
 pause
 goto menu
