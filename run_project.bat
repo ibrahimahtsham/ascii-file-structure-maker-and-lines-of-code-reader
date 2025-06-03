@@ -9,22 +9,26 @@ echo Select an option:
 echo 1. Install dependencies
 echo 2. Run project (development)
 echo 3. Build EXE (GUI only, no console)
-echo 4. Run built EXE
-echo 5. Clean build files
-echo 6. Run tests
-echo 7. Check imports
-echo 8. Exit
+echo 4. Build EXE (safer method)
+echo 5. Run built EXE
+echo 6. Clean build files
+echo 7. Run tests
+echo 8. Check imports
+echo 9. Add Defender exclusions (manual)
+echo 10. Exit
 echo.
-set /p choice="Enter your choice (1-8): "
+set /p choice="Enter your choice (1-10): "
 
 if "%choice%"=="1" goto install
 if "%choice%"=="2" goto run
 if "%choice%"=="3" goto build
-if "%choice%"=="4" goto run_exe
-if "%choice%"=="5" goto clean
-if "%choice%"=="6" goto test
-if "%choice%"=="7" goto check_imports
-if "%choice%"=="8" goto exit
+if "%choice%"=="4" goto build_safe
+if "%choice%"=="5" goto run_exe
+if "%choice%"=="6" goto clean
+if "%choice%"=="7" goto test
+if "%choice%"=="8" goto check_imports
+if "%choice%"=="9" goto defender_exclusions
+if "%choice%"=="10" goto exit
 
 echo Invalid choice. Please try again.
 echo.
@@ -51,18 +55,47 @@ goto menu
 
 :build
 echo Building EXE (GUI only, no console window)...
-pyinstaller --onefile --windowed --name "FileStructureViewer_v3" main.py
-echo Build complete! EXE created in dist folder.
-echo.
+echo Cleaning previous builds...
+if exist "build" rmdir /s /q "build"
+if exist "dist" rmdir /s /q "dist"
+if exist "*.spec" del "*.spec"
+echo Building executable...
+pyinstaller --onefile --windowed --name "FileStructureViewer_v3" --version-file=version_info.txt main.py
+if exist "dist\FileStructureViewer_v3.exe" (
+    echo ✅ Build successful! EXE created at: dist\FileStructureViewer_v3.exe
+) else (
+    echo ❌ Build failed! Check for errors above.
+)
+pause
+goto menu
+
+:build_safe
+echo Building with safer options...
+echo Step 1: Clean previous builds
+if exist "build" rmdir /s /q "build"
+if exist "dist" rmdir /s /q "dist"
+if exist "*.spec" del "*.spec"
+echo Step 2: Create spec file
+pyi-makespec --onefile --windowed --name "FileStructureViewer_v3" main.py
+echo Step 3: Build with spec
+pyinstaller FileStructureViewer_v3.spec
+if exist "dist\FileStructureViewer_v3.exe" (
+    echo ✅ Build successful! EXE created at: dist\FileStructureViewer_v3.exe
+) else (
+    echo ❌ Build failed! Check for errors above.
+)
 pause
 goto menu
 
 :run_exe
 echo Running built EXE...
 if exist "dist\FileStructureViewer_v3.exe" (
-    "dist\FileStructureViewer_v3.exe"
+    echo Starting FileStructureViewer_v3.exe...
+    start "" "dist\FileStructureViewer_v3.exe"
+    echo Application started!
 ) else (
-    echo EXE not found! Please build first (option 3).
+    echo EXE not found! Please build first (option 3 or 4).
+    echo Looking for: %cd%\dist\FileStructureViewer_v3.exe
 )
 pause
 goto menu
@@ -120,6 +153,27 @@ if exist "utils\__pycache__" rmdir /s /q "utils\__pycache__"
 if exist "views\components\__pycache__" rmdir /s /q "views\components\__pycache__"
 echo Build files cleaned!
 echo.
+pause
+goto menu
+
+:defender_exclusions
+echo Adding Defender exclusions (manual)...
+echo Please follow these steps:
+echo 1. Open Windows Security.
+echo 2. Go to "Virus & threat protection".
+echo 3. Click on "Manage settings" under "Virus & threat protection settings".
+echo 4. Scroll down to "Exclusions" and click on "Add or remove exclusions".
+echo 5. Add the following paths as exclusions:
+echo    - %cd%\dist\FileStructureViewer_v3.exe
+echo    - %cd%\build
+echo    - %cd%\__pycache__
+echo    - %cd%\models\__pycache__
+echo    - %cd%\views\__pycache__
+echo    - %cd%\controllers\__pycache__
+echo    - %cd%\utils\__pycache__
+echo 6. Close Windows Security.
+echo.
+echo Note: These steps are for manual exclusion. Automating this process is not recommended due to security risks.
 pause
 goto menu
 
